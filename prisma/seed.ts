@@ -8,9 +8,8 @@ function createClient() {
     const adapter = new PrismaBetterSqlite3({ url });
     return new PrismaClient({ adapter, log: ["error"] } as any);
   }
-  const { neon } = require("@neondatabase/serverless");
-  const { PrismaNeon } = require("@prisma/adapter-neon");
-  const adapter = new PrismaNeon(neon(url));
+  const { PrismaPg } = require("@prisma/adapter-pg");
+  const adapter = new PrismaPg({ connectionString: url });
   return new PrismaClient({ adapter, log: ["error"] } as any);
 }
 

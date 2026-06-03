@@ -14,11 +14,11 @@ function createPrismaClient() {
     });
   }
 
-  // Production: Neon serverless PostgreSQL
-  const { neon } = require("@neondatabase/serverless");
-  const { PrismaNeon } = require("@prisma/adapter-neon");
-  const sql = neon(url);
-  const adapter = new PrismaNeon(sql);
+  // Production: PostgreSQL (Neon) over the standard node-postgres driver.
+  // Plain TCP — supports interactive transactions and works reliably in
+  // Netlify serverless functions (no WebSocket runtime needed).
+  const { PrismaPg } = require("@prisma/adapter-pg");
+  const adapter = new PrismaPg({ connectionString: url });
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
