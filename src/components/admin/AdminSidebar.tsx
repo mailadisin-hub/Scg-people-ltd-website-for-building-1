@@ -19,6 +19,7 @@ import {
   Banknote,
   Menu,
   X,
+  KeyRound,
 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/admin/invoices", label: "Invoices", icon: Receipt },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/documents", label: "Documents", icon: FolderOpen },
+  { href: "/admin/account", label: "My Account", icon: KeyRound },
 ];
 
 export function AdminSidebar() {
