@@ -1,15 +1,19 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import { Building2, FileText, FolderOpen, PieChart, LogOut } from "lucide-react";
 
+// cache() deduplicates this query within a single request — the layout and
+// the page both call it but it only hits the DB once.
+export const getLeaseholder = cache((userId: string) =>
+  prisma.leaseholder.findUnique({ where: { userId }, include: { unit: true } })
+);
+
 async function LeaseholderNav({ userId }: { userId: string }) {
-  const leaseholder = await prisma.leaseholder.findUnique({
-    where: { userId },
-    include: { unit: true },
-  });
+  const leaseholder = await getLeaseholder(userId);
 
   return (
     <header className="bg-brand-blue shadow-md sticky top-0 z-40">
