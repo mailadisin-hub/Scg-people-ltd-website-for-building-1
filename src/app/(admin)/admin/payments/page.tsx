@@ -64,14 +64,14 @@ export default async function PaymentsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-brand-blue">Payments</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">Payments</h1>
           <p className="text-gray-500 mt-1">Record and reconcile payments</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Record payment form */}
         <Card className="xl:col-span-1">
           <CardHeader>

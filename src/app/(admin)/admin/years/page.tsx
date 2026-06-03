@@ -55,7 +55,7 @@ export default async function YearsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-brand-blue">Financial Years</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">Financial Years</h1>
         <p className="text-gray-500 mt-1">Manage service charge years for Westcote Place</p>
       </div>
 

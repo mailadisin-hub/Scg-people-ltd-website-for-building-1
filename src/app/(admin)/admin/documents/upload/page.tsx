@@ -87,7 +87,7 @@ export default async function DocumentUploadPage({
         >
           <ArrowLeft className="w-4 h-4" /> Back to Documents
         </Link>
-        <h1 className="text-3xl font-bold text-brand-blue flex items-center gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-brand-blue flex items-center gap-2">
           <Upload className="w-8 h-8" />
           Upload Document
         </h1>

@@ -29,9 +29,9 @@ export default async function InvoicesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-brand-blue">Invoices</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">Invoices</h1>
           <p className="text-gray-500 mt-1">{invoices.length} invoices total</p>
         </div>
         <Link href="/admin/invoices/generate">
@@ -52,62 +52,97 @@ export default async function InvoicesPage() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Year / Quarter</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Issue Date</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Due Date</th>
-                    <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {invoices.map((inv) => {
-                    const total = inv.lineItems.reduce(
-                      (s, li) => s.plus(li.lineTotal),
-                      new Decimal(0)
-                    );
-                    const { variant, label } = statusConfig[inv.status] ?? {
-                      variant: "default",
-                      label: inv.status,
-                    };
-
-                    return (
-                      <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <Link
-                            href={`/admin/invoices/${inv.id}`}
-                            className="font-medium text-brand-blue hover:underline"
-                          >
-                            {inv.invoiceNumber}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4 text-gray-700">{inv.unit.unitRef}</td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {inv.serviceChargeYear.label} · {inv.quarter}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {formatDateShort(inv.issueDate)}
-                        </td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {formatDateShort(inv.dueDate)}
-                        </td>
-                        <td className="px-6 py-4 text-right font-semibold text-brand-blue">
+            <>
+              {/* Mobile: card list */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {invoices.map((inv) => {
+                  const total = inv.lineItems.reduce(
+                    (s, li) => s.plus(li.lineTotal),
+                    new Decimal(0)
+                  );
+                  const { variant, label } = statusConfig[inv.status] ?? {
+                    variant: "default",
+                    label: inv.status,
+                  };
+                  return (
+                    <Link
+                      key={inv.id}
+                      href={`/admin/invoices/${inv.id}`}
+                      className="block p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-semibold text-brand-blue">{inv.invoiceNumber}</span>
+                        <Badge variant={variant}>{label}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          {inv.unit.unitRef} · {inv.quarter}
+                        </span>
+                        <span className="text-sm font-bold text-brand-blue">
                           {formatCurrency(total.toNumber())}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <Badge variant={variant}>{label}</Badge>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Due {formatDateShort(inv.dueDate)}
+                      </p>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: full table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50">
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Year / Quarter</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Issue Date</th>
+                      <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Due Date</th>
+                      <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {invoices.map((inv) => {
+                      const total = inv.lineItems.reduce(
+                        (s, li) => s.plus(li.lineTotal),
+                        new Decimal(0)
+                      );
+                      const { variant, label } = statusConfig[inv.status] ?? {
+                        variant: "default",
+                        label: inv.status,
+                      };
+                      return (
+                        <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <Link
+                              href={`/admin/invoices/${inv.id}`}
+                              className="font-medium text-brand-blue hover:underline"
+                            >
+                              {inv.invoiceNumber}
+                            </Link>
+                          </td>
+                          <td className="px-6 py-4 text-gray-700">{inv.unit.unitRef}</td>
+                          <td className="px-6 py-4 text-gray-500">
+                            {inv.serviceChargeYear.label} · {inv.quarter}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500">{formatDateShort(inv.issueDate)}</td>
+                          <td className="px-6 py-4 text-gray-500">{formatDateShort(inv.dueDate)}</td>
+                          <td className="px-6 py-4 text-right font-semibold text-brand-blue">
+                            {formatCurrency(total.toNumber())}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <Badge variant={variant}>{label}</Badge>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

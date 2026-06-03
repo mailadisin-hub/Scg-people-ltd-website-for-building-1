@@ -49,7 +49,7 @@ export default async function LeaseholdersPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-brand-blue">Leaseholders</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">Leaseholders</h1>
         <p className="text-gray-500 mt-1">{leaseholders.length} of 16 units have portal accounts</p>
       </div>
 

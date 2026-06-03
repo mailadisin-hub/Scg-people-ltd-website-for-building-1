@@ -62,7 +62,7 @@ export default async function GenerateInvoicesPage({
         <Link href="/admin/invoices" className="text-sm text-gray-500 hover:text-brand-blue flex items-center gap-1 mb-2">
           <ArrowLeft className="w-4 h-4" /> Back to Invoices
         </Link>
-        <h1 className="text-3xl font-bold text-brand-blue">Generate Invoices</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">Generate Invoices</h1>
         <p className="text-gray-500 mt-1">Preview and generate quarterly service charge invoices</p>
       </div>
 

@@ -59,7 +59,7 @@ export default async function UnitDetailPage({ params }: { params: { unitId: str
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-brand-blue flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-blue flex items-center gap-2">
               <Building2 className="w-8 h-8" />
               {unit.unitRef}
             </h1>

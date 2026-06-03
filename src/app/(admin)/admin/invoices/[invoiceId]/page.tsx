@@ -88,7 +88,7 @@ export default async function InvoiceDetailPage({
         </Link>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-brand-blue">{invoice.invoiceNumber}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">{invoice.invoiceNumber}</h1>
             <p className="text-gray-500 mt-1">
               {invoice.unit.unitRef} · {invoice.serviceChargeYear.label} · {invoice.quarter}
             </p>

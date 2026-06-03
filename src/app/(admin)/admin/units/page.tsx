@@ -21,7 +21,7 @@ export default async function UnitsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-brand-blue">Units</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-brand-blue">Units</h1>
         <p className="text-gray-500 mt-1">All 16 units at Westcote Place</p>
       </div>
 
