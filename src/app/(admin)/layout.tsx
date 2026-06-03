@@ -17,7 +17,7 @@ export default async function AdminLayout({
       <AdminSidebar />
       {/* ml-64 only on md+ where the sidebar is always visible */}
       <div className="md:ml-64">
-        <main className="p-4 md:p-8 pt-16 md:pt-8 min-h-screen">{children}</main>
+        <main className="p-4 md:p-8 pt-16 md:pt-8 min-h-screen animate-fade-in">{children}</main>
       </div>
     </div>
   );

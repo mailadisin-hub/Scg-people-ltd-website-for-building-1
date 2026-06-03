@@ -70,7 +70,7 @@ export default async function PortalDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className={balance.gt(0) ? "border-amber-200 bg-amber-50" : "border-green-200 bg-green-50"}>
+        <Card className={`animate-slide-up [animation-delay:0ms] ${balance.gt(0) ? "border-amber-200 bg-amber-50" : "border-green-200 bg-green-50"}`}>
           <CardContent className="p-5">
             <p className="text-sm font-medium text-gray-600">Account Balance</p>
             <p className={`text-2xl font-bold mt-1 ${balance.gt(0) ? "text-amber-700" : "text-green-700"}`}>
@@ -83,7 +83,7 @@ export default async function PortalDashboard() {
         </Card>
 
         {nextDue && (
-          <Card className="border-blue-200 bg-blue-50 sm:col-span-2">
+          <Card className="border-blue-200 bg-blue-50 sm:col-span-2 animate-slide-up [animation-delay:75ms]">
             <CardContent className="p-5">
               <p className="text-sm font-medium text-gray-600">Next Payment Due</p>
               <div className="flex items-center justify-between mt-1">

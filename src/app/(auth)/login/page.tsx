@@ -45,7 +45,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-brand-blue via-brand-blue-light to-brand-blue-dark flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo / Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 animate-slide-up">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-brand-gold rounded-full mb-4 shadow-lg">
             <Building2 className="w-10 h-10 text-white" />
           </div>
@@ -53,7 +53,7 @@ export default function LoginPage() {
           <p className="text-brand-gold-light font-medium">Westcote Place Portal</p>
         </div>
 
-        <Card className="shadow-2xl border-0">
+        <Card className="shadow-2xl border-0 animate-scale-in [animation-delay:120ms]">
           <CardHeader className="pb-4">
             <CardTitle className="text-center text-2xl">Sign In</CardTitle>
             <CardDescription className="text-center">

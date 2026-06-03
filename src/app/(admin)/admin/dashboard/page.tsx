@@ -86,35 +86,43 @@ export default async function AdminDashboard() {
 
       {kpis && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-          <KpiCard
-            title="Total Invoiced"
-            value={formatCurrency(kpis.totalInvoiced.toNumber())}
-            icon={<FileText className="w-5 h-5" />}
-            color="blue"
-            subtitle={`${currentYear!.label}`}
-          />
-          <KpiCard
-            title="Collected"
-            value={formatCurrency(kpis.totalCollected.toNumber())}
-            icon={<CheckCircle2 className="w-5 h-5" />}
-            color="green"
-            subtitle="Payments received"
-          />
-          <KpiCard
-            title="Outstanding"
-            value={formatCurrency(kpis.outstanding.toNumber())}
-            icon={<TrendingUp className="w-5 h-5" />}
-            color="gold"
-            subtitle="Yet to be collected"
-          />
-          <KpiCard
-            title="Overdue"
-            value={kpis.overdueCount.toString()}
-            unit="invoices"
-            icon={<AlertCircle className="w-5 h-5" />}
-            color="red"
-            subtitle="Require attention"
-          />
+          <div className="animate-slide-up [animation-delay:0ms]">
+            <KpiCard
+              title="Total Invoiced"
+              value={formatCurrency(kpis.totalInvoiced.toNumber())}
+              icon={<FileText className="w-5 h-5" />}
+              color="blue"
+              subtitle={`${currentYear!.label}`}
+            />
+          </div>
+          <div className="animate-slide-up [animation-delay:75ms]">
+            <KpiCard
+              title="Collected"
+              value={formatCurrency(kpis.totalCollected.toNumber())}
+              icon={<CheckCircle2 className="w-5 h-5" />}
+              color="green"
+              subtitle="Payments received"
+            />
+          </div>
+          <div className="animate-slide-up [animation-delay:150ms]">
+            <KpiCard
+              title="Outstanding"
+              value={formatCurrency(kpis.outstanding.toNumber())}
+              icon={<TrendingUp className="w-5 h-5" />}
+              color="gold"
+              subtitle="Yet to be collected"
+            />
+          </div>
+          <div className="animate-slide-up [animation-delay:225ms]">
+            <KpiCard
+              title="Overdue"
+              value={kpis.overdueCount.toString()}
+              unit="invoices"
+              icon={<AlertCircle className="w-5 h-5" />}
+              color="red"
+              subtitle="Require attention"
+            />
+          </div>
         </div>
       )}
 
