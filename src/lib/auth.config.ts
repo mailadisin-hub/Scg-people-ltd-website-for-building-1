@@ -1,6 +1,10 @@
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig: NextAuthConfig = {
+  // Required on Netlify (and any non-Vercel host): trust the X-Forwarded-Host
+  // header so Auth.js accepts the live host and builds callback URLs from the
+  // actual request rather than rejecting it as an untrusted host.
+  trustHost: true,
   providers: [],
   callbacks: {
     jwt({ token, user }) {
