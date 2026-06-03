@@ -41,9 +41,8 @@ async function changePassword(formData: FormData) {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ changed?: string }>;
+  searchParams: { changed?: string };
 }) {
-  const params = await searchParams;
   const session = await auth();
   if (!session) redirect("/login");
   const user = session.user as { name?: string; email?: string };
@@ -53,7 +52,7 @@ export default async function AccountPage({
       <h1 className="text-2xl font-bold text-brand-blue mb-1">My Account</h1>
       <p className="text-gray-500 text-sm mb-8">Change your admin password</p>
 
-      {params.changed === "1" && (
+      {searchParams.changed === "1" && (
         <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-6 text-sm animate-scale-in">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           Password changed successfully.
