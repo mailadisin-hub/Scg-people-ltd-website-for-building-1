@@ -6,8 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
-import path from "path";
-import { writeFile, mkdir } from "fs/promises";
 import { randomUUID } from "crypto";
 import { DocVisibility } from "@prisma/client";
 
@@ -32,21 +30,24 @@ async function uploadDocument(formData: FormData) {
     redirect("/admin/documents/upload?error=Invalid+file+type.+Allowed:+PDF,+JPG,+PNG,+DOCX");
   }
 
-  const maxSize = 10 * 1024 * 1024;
-  if (file.size > maxSize) {
+  if (file.size > 10 * 1024 * 1024) {
     redirect("/admin/documents/upload?error=File+too+large.+Maximum+10MB");
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
   const safeExt = ["pdf", "jpg", "jpeg", "png", "docx"].includes(ext) ? ext : "bin";
-  const storedName = `${randomUUID()}.${safeExt}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "documents");
-
-  await mkdir(uploadDir, { recursive: true });
+  const blobKey = `${randomUUID()}.${safeExt}`;
   const bytes = await file.arrayBuffer();
-  await writeFile(path.join(uploadDir, storedName), Buffer.from(bytes));
 
-  const fileUrl = `/uploads/documents/${storedName}`;
+  // Store in Netlify Blobs (works in both local dev and production)
+  const { getStore } = await import("@netlify/blobs");
+  const store = getStore("documents");
+  await store.set(blobKey, bytes, {
+    metadata: { fileName: file.name, mimeType: file.type },
+  });
+
+  // fileUrl points to our authenticated download route
+  const fileUrl = `/api/documents/${blobKey}/download`;
 
   const doc = await prisma.document.create({
     data: {
