@@ -1,7 +1,20 @@
 import { PrismaClient, UnitType } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+function createClient() {
+  const url = process.env.DATABASE_URL ?? "file:./dev.db";
+  if (url.startsWith("file:")) {
+    const adapter = new PrismaBetterSqlite3({ url });
+    return new PrismaClient({ adapter, log: ["error"] } as any);
+  }
+  const { neon } = require("@neondatabase/serverless");
+  const { PrismaNeon } = require("@prisma/adapter-neon");
+  const adapter = new PrismaNeon(neon(url));
+  return new PrismaClient({ adapter, log: ["error"] } as any);
+}
+
+const prisma = createClient();
 
 async function main() {
   console.log("🌱 Seeding Westcote Place database...");
