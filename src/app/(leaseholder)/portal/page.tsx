@@ -16,6 +16,7 @@ async function getPortalData(userId: string) {
 
   if (!leaseholder) return null;
 
+  // Fetch invoices in parallel once we have the unitId.
   const invoices = await prisma.invoice.findMany({
     where: { unitId: leaseholder.unitId, status: { not: "VOID" } },
     include: { lineItems: true, payments: true },

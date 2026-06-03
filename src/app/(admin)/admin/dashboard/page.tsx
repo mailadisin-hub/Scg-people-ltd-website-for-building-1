@@ -22,39 +22,38 @@ async function getDashboardData() {
     return { currentYear: null, kpis: null, recentInvoices: [], overdueInvoices: [] };
   }
 
-  const allInvoices = await prisma.invoice.findMany({
-    where: { serviceChargeYearId: currentYear.id, status: { not: "VOID" } },
-    include: { lineItems: true, payments: true, unit: true },
-  });
+  // Run all remaining queries in parallel — cuts 4 round-trips down to 1 wait.
+  const [allInvoices, totalCollected, recentInvoices, overdueInvoices] = await Promise.all([
+    prisma.invoice.findMany({
+      where: { serviceChargeYearId: currentYear.id, status: { not: "VOID" } },
+      include: { lineItems: true, payments: true, unit: true },
+    }),
+    prisma.payment.aggregate({
+      where: { invoice: { serviceChargeYearId: currentYear.id } },
+      _sum: { amount: true },
+    }),
+    prisma.invoice.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { unit: true, lineItems: true },
+    }),
+    prisma.invoice.findMany({
+      where: { status: "OVERDUE" },
+      include: { unit: true, lineItems: true },
+      orderBy: { dueDate: "asc" },
+      take: 5,
+    }),
+  ]);
 
   const totalInvoiced = allInvoices.reduce((sum, inv) => {
     const invTotal = inv.lineItems.reduce((s, li) => s.plus(li.lineTotal), new Decimal(0));
     return sum.plus(invTotal);
   }, new Decimal(0));
 
-  const totalCollected = await prisma.payment.aggregate({
-    where: { invoice: { serviceChargeYearId: currentYear.id } },
-    _sum: { amount: true },
-  });
-
   const outstanding = totalInvoiced.minus(totalCollected._sum.amount ?? new Decimal(0));
-
   const overdueCount = allInvoices.filter((inv) => inv.status === "OVERDUE").length;
   const paidCount = allInvoices.filter((inv) => inv.status === "PAID").length;
   const sentCount = allInvoices.filter((inv) => inv.status === "SENT").length;
-
-  const recentInvoices = await prisma.invoice.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: { unit: true, lineItems: true },
-  });
-
-  const overdueInvoices = await prisma.invoice.findMany({
-    where: { status: "OVERDUE" },
-    include: { unit: true, lineItems: true },
-    orderBy: { dueDate: "asc" },
-    take: 5,
-  });
 
   return {
     currentYear,

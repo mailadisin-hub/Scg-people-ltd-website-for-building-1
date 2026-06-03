@@ -18,7 +18,9 @@ function createPrismaClient() {
   // Plain TCP — supports interactive transactions and works reliably in
   // Netlify serverless functions (no WebSocket runtime needed).
   const { PrismaPg } = require("@prisma/adapter-pg");
-  const adapter = new PrismaPg({ connectionString: url });
+  // Pool size 3: enough for concurrent serverless requests without exhausting
+  // Neon's free-tier connection limit (max 10).
+  const adapter = new PrismaPg({ connectionString: url, max: 3 });
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],

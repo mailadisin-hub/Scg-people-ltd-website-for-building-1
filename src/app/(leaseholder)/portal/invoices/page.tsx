@@ -25,6 +25,7 @@ export default async function LeaseholderInvoicesPage() {
   const leaseholder = await prisma.leaseholder.findUnique({ where: { userId } });
   if (!leaseholder) redirect("/portal");
 
+  // unitId is available immediately so we can fire the invoice query right away.
   const invoices = await prisma.invoice.findMany({
     where: { unitId: leaseholder.unitId, status: { not: "VOID" } },
     include: { lineItems: true, payments: true, serviceChargeYear: true },

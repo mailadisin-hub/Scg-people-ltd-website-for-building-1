@@ -16,20 +16,31 @@ export default async function LeaseholderDocumentsPage() {
   });
   if (!leaseholder) redirect("/portal");
 
-  const unitDocAccess = await prisma.documentUnitAccess.findMany({
-    where: { unitId: leaseholder.unitId },
-    select: { documentId: true },
-  });
-  const specificDocIds = unitDocAccess.map((d) => d.documentId);
+  // Fetch unit-specific access list and all-leaseholder docs in parallel.
+  const [unitDocAccess, allLeaseholderDocs] = await Promise.all([
+    prisma.documentUnitAccess.findMany({
+      where: { unitId: leaseholder.unitId },
+      select: { documentId: true },
+    }),
+    prisma.document.findMany({
+      where: { visibility: "ALL_LEASEHOLDERS" },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
-  const documents = await prisma.document.findMany({
-    where: {
-      OR: [
-        { visibility: "ALL_LEASEHOLDERS" },
-        { visibility: "SPECIFIC_UNITS", id: { in: specificDocIds } },
-      ],
-    },
-    orderBy: { createdAt: "desc" },
+  const specificDocIds = unitDocAccess.map((d) => d.documentId);
+  const specificDocs = specificDocIds.length
+    ? await prisma.document.findMany({
+        where: { visibility: "SPECIFIC_UNITS", id: { in: specificDocIds } },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  const seen = new Set<string>();
+  const documents = [...allLeaseholderDocs, ...specificDocs].filter((d) => {
+    if (seen.has(d.id)) return false;
+    seen.add(d.id);
+    return true;
   });
 
   return (

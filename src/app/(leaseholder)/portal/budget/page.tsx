@@ -18,14 +18,18 @@ export default async function LeaseholderBudgetPage() {
   });
   if (!leaseholder) redirect("/portal");
 
-  const currentYear = await prisma.serviceChargeYear.findFirst({
-    where: { isCurrent: true },
-    include: {
-      schedules: {
-        include: { budgetLineItems: { orderBy: { displayOrder: "asc" } } },
+  // Fetch year/budget and flat units in parallel.
+  const [currentYear, flatUnits] = await Promise.all([
+    prisma.serviceChargeYear.findFirst({
+      where: { isCurrent: true },
+      include: {
+        schedules: {
+          include: { budgetLineItems: { orderBy: { displayOrder: "asc" } } },
+        },
       },
-    },
-  });
+    }),
+    prisma.unit.findMany({ where: { unitType: "FLAT" } }),
+  ]);
 
   if (!currentYear) {
     return (
@@ -37,8 +41,6 @@ export default async function LeaseholderBudgetPage() {
 
   const scheduleA = currentYear.schedules.find((s) => s.scheduleType === "A");
   const scheduleB = currentYear.schedules.find((s) => s.scheduleType === "B");
-
-  const flatUnits = await prisma.unit.findMany({ where: { unitType: "FLAT" } });
   const flatsTotal = totalFlatsWeight(flatUnits.map((u) => ({
     unitId: u.id, unitRef: u.unitRef, isCommercial: false, scheduleWeight: u.scheduleWeight,
   })));

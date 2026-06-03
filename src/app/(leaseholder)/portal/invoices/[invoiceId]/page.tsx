@@ -26,22 +26,16 @@ export default async function LeaseholderInvoiceDetailPage({
   const userId = (session?.user as { id?: string })?.id;
   if (!userId) redirect("/login");
 
-  const leaseholder = await prisma.leaseholder.findUnique({
-    where: { userId },
-    include: { unit: true },
-  });
+  // Fetch leaseholder and invoice in parallel — saves one round-trip.
+  const [leaseholder, invoice] = await Promise.all([
+    prisma.leaseholder.findUnique({ where: { userId }, include: { unit: true } }),
+    prisma.invoice.findUnique({
+      where: { id: params.invoiceId },
+      include: { unit: true, lineItems: true, payments: true, serviceChargeYear: true },
+    }),
+  ]);
+
   if (!leaseholder) redirect("/portal");
-
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: params.invoiceId },
-    include: {
-      unit: true,
-      lineItems: true,
-      payments: true,
-      serviceChargeYear: true,
-    },
-  });
-
   if (!invoice || invoice.unitId !== leaseholder.unitId) notFound();
 
   const total = invoice.lineItems.reduce((s, li) => s.plus(li.lineTotal), new Decimal(0));
