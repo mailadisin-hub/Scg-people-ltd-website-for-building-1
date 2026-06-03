@@ -1,0 +1,272 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── AUTH ───────────────────────────────────────────────────────────────────
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  name             String
+  role             Role      @default(LEASEHOLDER)
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  leaseholder Leaseholder?
+  auditLogs   AuditLog[]
+}
+
+enum Role {
+  ADMIN
+  LEASEHOLDER
+}
+
+// ─── PROPERTY ───────────────────────────────────────────────────────────────
+
+model Unit {
+  id          String   @id @default(cuid())
+  unitRef     String   @unique
+  unitType    UnitType
+  floorNumber Int?
+  // Relative weight for apportionment: 9 (two-bed), 7 (one-bed), 6 (studio), null (commercial).
+  // Commercial pays a fixed 25% of Schedule A enforced in invoiceEngine.
+  scheduleWeight Decimal?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  leaseholder Leaseholder?
+  invoices    Invoice[]
+  payments    Payment[]
+}
+
+enum UnitType {
+  FLAT
+  COMMERCIAL
+}
+
+model Leaseholder {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  unitId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unit Unit @relation(fields: [unitId], references: [id])
+}
+
+// ─── SERVICE CHARGE YEAR ────────────────────────────────────────────────────
+
+model ServiceChargeYear {
+  id        String   @id @default(cuid())
+  label     String   @unique
+  startDate DateTime
+  endDate   DateTime
+  isCurrent Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedules Schedule[]
+  invoices  Invoice[]
+}
+
+// ─── SCHEDULES ──────────────────────────────────────────────────────────────
+
+model Schedule {
+  id                   String       @id @default(cuid())
+  serviceChargeYearId  String
+  scheduleType         ScheduleType
+  managementFeePercent Decimal      @default(3.25)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  year              ServiceChargeYear @relation(fields: [serviceChargeYearId], references: [id])
+  expenseCategories ExpenseCategory[]
+  budgetLineItems   BudgetLineItem[]
+
+  @@unique([serviceChargeYearId, scheduleType])
+}
+
+enum ScheduleType {
+  A
+  B
+}
+
+// ─── EXPENSES (ACTUALS) ─────────────────────────────────────────────────────
+
+model ExpenseCategory {
+  id           String   @id @default(cuid())
+  scheduleId   String
+  name         String
+  description  String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  schedule     Schedule      @relation(fields: [scheduleId], references: [id])
+  expenseItems ExpenseItem[]
+}
+
+model ExpenseItem {
+  id                String   @id @default(cuid())
+  expenseCategoryId String
+  description       String
+  amount            Decimal
+  date              DateTime
+  supplier          String?
+  invoiceRef        String?
+  receiptUrl        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  category ExpenseCategory @relation(fields: [expenseCategoryId], references: [id])
+}
+
+// ─── BUDGET (FORECAST) ──────────────────────────────────────────────────────
+
+model BudgetLineItem {
+  id             String   @id @default(cuid())
+  scheduleId     String
+  categoryName   String
+  description    String?
+  budgetedAmount Decimal
+  displayOrder   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+}
+
+// ─── INVOICES ───────────────────────────────────────────────────────────────
+
+model Invoice {
+  id                  String        @id @default(cuid())
+  invoiceNumber       String        @unique
+  serviceChargeYearId String
+  unitId              String
+  quarter             Quarter
+  issueDate           DateTime
+  dueDate             DateTime
+  status              InvoiceStatus @default(DRAFT)
+  pdfUrl              String?
+  sentAt              DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  serviceChargeYear ServiceChargeYear @relation(fields: [serviceChargeYearId], references: [id])
+  unit              Unit              @relation(fields: [unitId], references: [id])
+  lineItems         InvoiceLineItem[]
+  payments          Payment[]
+}
+
+enum Quarter {
+  Q1
+  Q2
+  Q3
+  Q4
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+model InvoiceLineItem {
+  id                  String       @id @default(cuid())
+  invoiceId           String
+  scheduleType        ScheduleType
+  description         String
+  annualScheduleTotal Decimal
+  quarterlyTotal      Decimal
+  unitShareAmount     Decimal
+  managementFeeAmount Decimal
+  lineTotal           Decimal
+  sharePercentage     Decimal
+  createdAt           DateTime     @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ─── PAYMENTS ───────────────────────────────────────────────────────────────
+
+model Payment {
+  id          String        @id @default(cuid())
+  unitId      String
+  invoiceId   String?
+  amount      Decimal
+  paymentDate DateTime
+  method      PaymentMethod
+  reference   String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  unit    Unit     @relation(fields: [unitId], references: [id])
+  invoice Invoice? @relation(fields: [invoiceId], references: [id])
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CHEQUE
+  DIRECT_DEBIT
+  CASH
+  OTHER
+}
+
+// ─── DOCUMENTS ──────────────────────────────────────────────────────────────
+
+model Document {
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  fileUrl      String
+  fileName     String
+  fileSize     Int
+  mimeType     String
+  visibility   DocVisibility @default(ALL_LEASEHOLDERS)
+  uploadedById String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  unitAccess DocumentUnitAccess[]
+}
+
+enum DocVisibility {
+  ALL_LEASEHOLDERS
+  ADMIN_ONLY
+  SPECIFIC_UNITS
+}
+
+model DocumentUnitAccess {
+  id         String @id @default(cuid())
+  documentId String
+  unitId     String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+// ─── AUDIT LOG ──────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  targetType String?
+  targetId   String?
+  ipAddress  String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
