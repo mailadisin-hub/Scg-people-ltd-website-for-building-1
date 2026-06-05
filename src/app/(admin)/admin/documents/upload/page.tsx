@@ -39,12 +39,9 @@ async function uploadDocument(formData: FormData) {
   const blobKey = `${randomUUID()}.${safeExt}`;
   const bytes = await file.arrayBuffer();
 
-  // Store in Netlify Blobs (works in both local dev and production)
-  const { getStore } = await import("@netlify/blobs");
-  const store = getStore("documents");
-  await store.set(blobKey, bytes, {
-    metadata: { fileName: file.name, mimeType: file.type },
-  });
+  // Store on the server's local disk (see src/lib/storage.ts)
+  const { saveFile } = await import("@/lib/storage");
+  await saveFile(blobKey, bytes);
 
   // fileUrl points to our authenticated download route
   const fileUrl = `/api/documents/${blobKey}/download`;

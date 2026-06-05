@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getStore } from "@netlify/blobs";
+import { readFile } from "@/lib/storage";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -46,14 +46,13 @@ export async function GET(
     }
   }
 
-  const store = getStore("documents");
-  const blob = await store.get(blobKey, { type: "arrayBuffer" });
+  const blob = await readFile(blobKey);
 
   if (!blob) {
     return NextResponse.json({ error: "File not found in storage" }, { status: 404 });
   }
 
-  return new NextResponse(blob, {
+  return new NextResponse(new Uint8Array(blob), {
     headers: {
       "Content-Type": doc.mimeType,
       "Content-Disposition": `attachment; filename="${doc.fileName}"`,
