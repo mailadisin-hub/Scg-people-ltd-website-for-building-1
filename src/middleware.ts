@@ -14,7 +14,8 @@ export default auth((req) => {
   if (
     pathname === "/login" ||
     pathname.startsWith("/api/auth") ||
-    pathname === "/api/setup"
+    pathname === "/api/setup" ||
+    pathname === "/api/admin/import-2026"
   ) {
     if (session && pathname === "/login") {
       const role = (session.user as { role?: string } | undefined)?.role;
