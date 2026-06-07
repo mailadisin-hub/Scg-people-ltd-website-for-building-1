@@ -74,7 +74,20 @@ async function handler(req: NextRequest) {
   const schedB = year.schedules.find((s) => s.scheduleType === "B");
   if (!schedA || !schedB) return NextResponse.json({ error: "Schedules not found" }, { status: 400 });
 
-  // ── 2. Update management fee to 2% ────────────────────────────────────────
+  // ── 2. Delete all existing Q1 invoices for this year (clean slate) ──────────
+  const existingQ1 = await prisma.invoice.findMany({
+    where: { serviceChargeYearId: year.id, quarter: "Q1" },
+    select: { id: true },
+  });
+  if (existingQ1.length > 0) {
+    const ids = existingQ1.map((i) => i.id);
+    await prisma.payment.deleteMany({ where: { invoiceId: { in: ids } } });
+    await prisma.invoiceLineItem.deleteMany({ where: { invoiceId: { in: ids } } });
+    await prisma.invoice.deleteMany({ where: { id: { in: ids } } });
+    results.push(`🗑️  Deleted ${ids.length} existing Q1 invoices`);
+  }
+
+  // ── 3. Update management fee to 2% ────────────────────────────────────────
   await prisma.schedule.update({ where: { id: schedA.id }, data: { managementFeePercent: MGMT_FEE } });
   await prisma.schedule.update({ where: { id: schedB.id }, data: { managementFeePercent: MGMT_FEE } });
   results.push("✅ Management fee updated to 2%");
@@ -103,10 +116,6 @@ async function handler(req: NextRequest) {
     if (!unit) { results.push(`⚠️  Unit not found: ${data.ref}`); continue; }
 
     const invoiceNumber = `WP-2026-Q1-${data.inv}`;
-
-    // Idempotent — skip if already created
-    const existing = await prisma.invoice.findUnique({ where: { invoiceNumber } });
-    if (existing) { skipped++; continue; }
 
     const quarterlyA = round2(data.annualA / 4);
     const quarterlyB = round2(data.annualB / 4);
@@ -178,7 +187,7 @@ async function handler(req: NextRequest) {
     created++;
   }
 
-  results.push(`✅ Q1 2025/2026 invoices: ${created} created, ${skipped} skipped (already existed)`);
+  results.push(`✅ Q1 2025/2026 invoices: ${created} created`);
 
   return NextResponse.json({ success: true, results });
 }
