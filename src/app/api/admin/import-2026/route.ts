@@ -47,7 +47,15 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
+export async function GET(req: NextRequest) {
+  return handler(req);
+}
+
 export async function POST(req: NextRequest) {
+  return handler(req);
+}
+
+async function handler(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (token !== process.env.SETUP_TOKEN) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
